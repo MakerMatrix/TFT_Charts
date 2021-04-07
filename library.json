@@ -1,0 +1,26 @@
+{
+  "name": "TFT Charts",
+  "version": "0.01",
+  "description": "Charting library for ILI9341 SPI displays",
+  "keywords": "TFT, Chart, Graph",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/MakerMatrix/TFT_Charts.git"
+  },
+  "authors":
+  [
+    {
+      "name": "MakerMatrix",
+      "email": "agentsmith@makermatrix.com",
+      "url": "http://www.maker-matrix.com"
+    }
+  ],
+  "license": "Apache 2.0",
+  "homepage": "https://www.maker-matrix.com",
+  "dependencies": {
+    "Bodmer/TFT_ILI9341": "~0.17"
+  },
+  "frameworks": "*",
+  "platforms": "*"
+}
