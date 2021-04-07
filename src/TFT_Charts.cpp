@@ -248,12 +248,6 @@ void ChartXY::drawLine(TFT_ILI9341 &tft, float x0, float y0, float x1, float y1)
 
     tft.drawLine(px0, py0, px1, py1, lineColor);
     // tft.drawLine(px0+1, py0+1, px1+1, py1+1, lineColor);
-
-   // tft.drawLine(px0+1, py0, px1+1, py1, lineColor);
-    //Serial.println(y1);
-    //delay(3000);
-    //prevPxX = px1;
-    //prevPxY = py1;
 }
 
 // Draw a line
@@ -274,9 +268,6 @@ void ChartXY::eraseLine(TFT_ILI9341 &tft, float x0, float y0, float x1, float y1
     
     tft.drawLine(px0, py0, px1, py1, chartBGColor);
     // tft.drawLine(px0+1, py0+1, px1+1, py1+1, chartBGColor);
-
-    prevPxX = px1;
-    prevPxY = py1;
 }
 
 //  Private methods go below here:
