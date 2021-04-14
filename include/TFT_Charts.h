@@ -8,7 +8,7 @@ Inspired by (and bits borrowed from) Kris Kasprzak's Graph() function:
 https://github.com/KrisKasprzak/GraphingFunction/blob/master/Graph.ino
 */
 
-#include <Adafruit_GFX.h>
+// #include <Adafruit_GFX.h>
 #include <TFT_ILI9341.h>
 #include <TFT_Colors.h>
 
@@ -24,8 +24,20 @@ public:
     uint16_t tickColor = BLUE;
     uint16_t lineColor = YELLOW;
     uint16_t pointColor = GREEN;
-    boolean isScrolling=false;
-    
+    uint16_t zeroColor = RED;
+    float xMin;
+    float xMax;
+    float yMin;
+    float yMax;
+    float xIncr;
+    float yIncr;
+
+    struct point
+    {
+        float x, y;
+        uint16_t px, py;
+    };
+
     // Instantiates the class, taking a pointer to an ILI9341 TFT object
     //ChartXY(TFT_ILI9341 &tft);
 
@@ -44,15 +56,30 @@ public:
     void setAxisLimitsY(float yMin, float yMax, float yIncr);
 
     void eraseChartRegion(TFT_ILI9341 &tft);
-    
+
     // Draws the Title
-    void drawTitle(TFT_ILI9341 &tft, String chartTitle);
-    
+    void drawTitleChart(TFT_ILI9341 &tft, String chartTitle);
+
+    // Draws X axis title
+    void drawTitleX(TFT_ILI9341 &tft, String xTitle);
+
+    // Draws Y axis title
+    void drawTitleY(TFT_ILI9341 &tft, String yTitle);
+
+    // Draws a legend element:
+    void drawLegend(TFT_ILI9341 &tft, String legend, uint16_t xPx, uint16_t yPx, uint16_t fontSize, uint16_t color);
+
     // Draws the X axis
     void drawAxisX(TFT_ILI9341 &tft, int tickLen);
 
     // Draws the Y axis
     void drawAxisY(TFT_ILI9341 &tft, int tickLen);
+
+    // Draws X=0 line
+    void drawX0(TFT_ILI9341 &tft);
+
+    // Draws Y=0 line
+    void drawY0(TFT_ILI9341 &tft);
 
     // Draws the X tick labels
     void drawLabelsX(TFT_ILI9341 &tft);
@@ -72,6 +99,12 @@ public:
     // Erase a line
     void eraseLine(TFT_ILI9341 &tft, float x0, float y0, float x1, float y1);
 
+    // Transform a chart X value to a TFT pixel coordinate
+    uint16_t xToPx(float x);
+
+    // Transform a chart Y value to a TFT pixel coordinate
+    uint16_t yToPx(float y);
+
 private:
     // Private variables
     uint16_t tftResX; // Number of pixels in the X direction
@@ -82,19 +115,9 @@ private:
     uint16_t yPxHi;   // Y pixels for lower right chart corner
     uint16_t xPxSize; // Size of the X axis in pixels
     uint16_t yPxSize; // Size of the Y axis in pixels
-    float xMin;
-    float xMax;
-    float yMin;
-    float yMax;
-    float xIncr;
-    float yIncr;
     float xPxPerX;
     float yPxPerY;
-    
 
-
-
-    // Compute the width of a number in pixels
+    // Compute the width of a number at fontSize=1, in pixels
     uint16_t pixelWidth(int label);
-
 };

@@ -33,27 +33,27 @@ void ChartXY::begin(TFT_ILI9341 &tft)
 void ChartXY::tftInfo()
 {
     Serial.begin(9600);
-    while (!Serial)
-        ;
+    if (Serial)
+    {
+        Serial.print("tftInfo(): This ChartXY object will render ");
+        Serial.print(tftResX);
+        Serial.print(" pixels in the X-direction and ");
+        Serial.print(tftResY);
+        Serial.println(" pixels in the Y-direction.");
+        Serial.print("tftInfo(): Chart region: [");
+        Serial.print(xPxLo);
+        Serial.print(", ");
+        Serial.print(yPxLo);
+        Serial.print("]");
+        Serial.print(" -> ");
+        Serial.print("[");
+        Serial.print(xPxHi);
+        Serial.print(", ");
+        Serial.print(yPxHi);
+        Serial.println("] ");
 
-    Serial.print("tftInfo(): This ChartXY object will render ");
-    Serial.print(tftResX);
-    Serial.print(" pixels in the X-direction and ");
-    Serial.print(tftResY);
-    Serial.println(" pixels in the Y-direction.");
-    Serial.print("tftInfo(): Chart region: [");
-    Serial.print(xPxLo);
-    Serial.print(", ");
-    Serial.print(yPxLo);
-    Serial.print("]");
-    Serial.print(" -> ");
-    Serial.print("[");
-    Serial.print(xPxHi);
-    Serial.print(", ");
-    Serial.print(yPxHi);
-    Serial.println("] ");
-
-    Serial.end();
+        Serial.end();
+    }
 }
 
 void ChartXY::setChartRegion(unsigned short xp0, unsigned short yp0,
@@ -93,10 +93,19 @@ void ChartXY::eraseChartRegion(TFT_ILI9341 &tft)
 
 void ChartXY::drawTitle(TFT_ILI9341 &tft, String chartTitle)
 {
+    tft.fillRect(xPxLo, 0, xPxSize, 16, tftBGColor); // Title area
     tft.setTextSize(2);
-    tft.setTextColor(titleColor);
+    tft.setTextColor(titleColor, tftBGColor);
     tft.setCursor(xPxLo, 0);
     tft.println(chartTitle);
+}
+
+void ChartXY::drawLegend(TFT_ILI9341 &tft, String legend, uint16_t xPx, uint16_t yPx, uint16_t fontSize, uint16_t color)
+{
+    tft.setTextSize(fontSize);
+    tft.setTextColor(color, chartBGColor);
+    tft.setCursor(xPx, yPx);
+    tft.println(legend);
 }
 
 // Draw the X axis and ticks (no labels)
@@ -104,7 +113,8 @@ void ChartXY::drawAxisX(TFT_ILI9341 &tft, int xTickLen)
 {
     float f, tick, yPxStart;
 
-    if(xTickLen < 0){
+    if (xTickLen < 0)
+    {
         xTickLen = yPxSize;
     }
 
@@ -113,7 +123,7 @@ void ChartXY::drawAxisX(TFT_ILI9341 &tft, int xTickLen)
     for (f = xMin; f <= xMax; f += xIncr)
     {
         // Transform from x tick values to tft pixels
-        tick = (f - xMin) * xPxSize / (xMax - xMin) + xPxLo;
+        tick = (f - xMin) * xPxPerX + xPxLo;
         // Draw the ticks
         if (f == xMin)
         {
@@ -131,7 +141,8 @@ void ChartXY::drawAxisY(TFT_ILI9341 &tft, int yTickLen)
 {
     float f, tick, xPxStart;
 
-    if(yTickLen < 0){
+    if (yTickLen < 0)
+    {
         yTickLen = xPxSize;
     }
 
@@ -140,7 +151,7 @@ void ChartXY::drawAxisY(TFT_ILI9341 &tft, int yTickLen)
     for (f = yMax; f >= yMin; f -= yIncr)
     {
         // Transform from x tick values to tft pixels
-        tick = (f - yMax) * yPxSize / (yMax - yMin) + yPxHi;
+        tick = (f - yMax) * yPxPerY + yPxHi;
         // Draw the ticks
         if (f == yMax)
         {
@@ -153,140 +164,148 @@ void ChartXY::drawAxisY(TFT_ILI9341 &tft, int yTickLen)
     }
 }
 
-// Draw the X axis labels (no ticks)
-void ChartXY::drawLabelsX(TFT_ILI9341 &tft)
+void ChartXY::drawX0(TFT_ILI9341 &tft)
 {
-    float f, tick, yPxStart;
-    uint16_t cursorNudge;
 
-    tft.setTextSize(1);
-    tft.setTextColor(labelColor, tftBGColor);
-
-    yPxStart = yPxHi + 3; // Compute the Y pixel value where ticks begin
-
-    for (f = xMin; f <= xMax; f += xIncr)
-    {
-        // Transform from x tick values to tft pixels
-        tick = (f - xMin) * xPxSize / (xMax - xMin) + xPxLo;
-        // Draw the labels
-        if (f > xMin && f < xMax)
+        if (xMax >= 0 && xMin <= 0)
         {
-            cursorNudge = pixelWidth(int(f)) / 2;
-            tft.setCursor(tick - cursorNudge, yPxStart);
+            tft.drawFastHLine(xToPx(0), yPxLo, yPxSize, zeroColor);
+        }
+}
+
+    void ChartXY::drawY0(TFT_ILI9341 & tft)
+    {
+         if (yMax >= 0 && yMin <= 0)
+        {
+            tft.drawFastHLine(xPxLo, yToPx(0), xPxSize, zeroColor);
+        }
+    }
+
+    // Draw the X axis labels (no ticks)
+    void ChartXY::drawLabelsX(TFT_ILI9341 & tft)
+    {
+        float f, tick, yPxStart;
+        uint16_t cursorNudge;
+
+        tft.setTextSize(1);
+        tft.setTextColor(labelColor, tftBGColor);
+
+        yPxStart = yPxHi + 3; // Compute the Y pixel value where ticks begin
+
+        for (f = xMin; f <= xMax; f += xIncr)
+        {
+            // Transform from x tick values to tft pixels
+            tick = (f - xMin) * xPxPerX + xPxLo;
+            // Draw the labels
+            if (f > xMin && f < (xMax - 0.05 * (xMax - xMin)))
+            {
+                cursorNudge = pixelWidth(int(f)) / 2;
+                tft.setCursor(tick - cursorNudge, yPxStart);
+                tft.println(int(f));
+            }
+        }
+    }
+
+    // Draw the Y axis labels (no ticks)
+    void ChartXY::drawLabelsY(TFT_ILI9341 & tft)
+    {
+        float f, tick, xPxStart;
+        uint16_t cursorNudge;
+
+        tft.setTextSize(1);
+        tft.setTextColor(labelColor, tftBGColor);
+
+        xPxStart = xPxLo; // Compute the Y pixel value where ticks begin
+
+        for (f = yMin; f <= yMax; f += yIncr)
+        {
+            // Transform from x tick values to tft pixels
+            tick = (yMin - f) * yPxPerY + yPxHi;
+            // Draw the labels
+
+            cursorNudge = pixelWidth(int(f)) + 2;
+            tft.setCursor(xPxStart - cursorNudge, tick - 3);
             tft.println(int(f));
         }
     }
-}
 
-// Draw the Y axis labels (no ticks)
-void ChartXY::drawLabelsY(TFT_ILI9341 &tft)
-{
-    float f, tick, xPxStart;
-    uint16_t cursorNudge;
-
-    tft.setTextSize(1);
-    tft.setTextColor(labelColor, tftBGColor);
-
-    xPxStart = xPxLo; // Compute the Y pixel value where ticks begin
-
-    for (f = yMin; f <= yMax; f += yIncr)
+    void ChartXY::drawPoint(TFT_ILI9341 & tft, float x, float y, uint16_t ptSize)
     {
-        // Transform from x tick values to tft pixels
-        tick = (yMin - f) * yPxSize / (yMax - yMin) + yPxHi;
-        // Draw the labels
+        float px, py;
 
-        cursorNudge = pixelWidth(int(f)) + 2;
-        tft.setCursor(xPxStart - cursorNudge, tick - 3);
-        tft.println(int(f));
-    }
-}
-
-void ChartXY::drawPoint(TFT_ILI9341 &tft, float x, float y, uint16_t ptSize)
-{
-    float px, py;
-
-    if (x > xMax || x < xMin || y > yMax || y < yMin)
-    {
-        return;
+        px = (x - xMin) * xPxSize / (xMax - xMin) + xPxLo;
+        py = (yMin - y) * yPxSize / (yMax - yMin) + yPxHi;
+        tft.fillCircle(px, py, ptSize, pointColor);
     }
 
-    px = (x - xMin) * xPxSize / (xMax - xMin) + xPxLo;
-    py = (yMin - y) * yPxSize / (yMax - yMin) + yPxHi;
-    tft.fillCircle(px, py, ptSize, pointColor);
-}
-
-void ChartXY::erasePoint(TFT_ILI9341 &tft, float x, float y, uint16_t ptSize)
-{
-    float px, py;
-
-    if (x > xMax || x < xMin || y > yMax || y < yMin)
+    void ChartXY::erasePoint(TFT_ILI9341 & tft, float x, float y, uint16_t ptSize)
     {
-        return;
+        float px, py;
+
+        px = (x - xMin) * xPxPerX + xPxLo;
+        py = (yMin - y) * yPxPerY + yPxHi;
+        tft.fillCircle(px, py, ptSize, chartBGColor);
     }
 
-    px = (x - xMin) * xPxPerX + xPxLo;
-    py = (yMin - y) * yPxPerY + yPxHi;
-    tft.fillCircle(px, py, ptSize, chartBGColor);
-}
-
-// Draw a line
-void ChartXY::drawLine(TFT_ILI9341 &tft, float x0, float y0, float x1, float y1)
-{
-    float px0, py0, px1, py1;
-
-    if (x0 > xMax || x0 < xMin || y0 > yMax || y0 < yMin ||
-        x1 > xMax || x1 < xMin || y1 > yMax || y1 < yMin)
+    // Draw a line
+    void ChartXY::drawLine(TFT_ILI9341 & tft, float x0, float y0, float x1, float y1)
     {
-        return;
+        uint16_t px0, py0, px1, py1;
+
+        px0 = round((x0 - xMin) * xPxPerX + xPxLo);
+        py0 = round((yMin - y0) * yPxPerY + yPxHi);
+        px1 = round((x1 - xMin) * xPxPerX + xPxLo);
+        py1 = round((yMin - y1) * yPxPerY + yPxHi);
+
+        tft.drawLine(px0, py0, px1, py1, lineColor);
+        // tft.drawLine(px0+1, py0+1, px1+1, py1+1, color);
     }
 
-    
-    px0 = (x0 - xMin) * xPxPerX + xPxLo;
-    py0 = (yMin - y0) * yPxPerY + yPxHi;
-    px1 = (x1 - xMin) * xPxPerX + xPxLo;
-    py1 = (yMin - y1) * yPxPerY + yPxHi;
-
-    tft.drawLine(px0, py0, px1, py1, lineColor);
-    // tft.drawLine(px0+1, py0+1, px1+1, py1+1, lineColor);
-}
-
-// Draw a line
-void ChartXY::eraseLine(TFT_ILI9341 &tft, float x0, float y0, float x1, float y1)
-{
-    float px0, py0, px1, py1;
-
-    if (x0 > xMax || x0 < xMin || y0 > yMax || y0 < yMin ||
-        x1 > xMax || x1 < xMin || y1 > yMax || y1 < yMin)
+    // Draw a line
+    void ChartXY::eraseLine(TFT_ILI9341 & tft, float x0, float y0, float x1, float y1)
     {
-        return;
+        uint16_t px0, py0, px1, py1;
+
+        px0 = round((x0 - xMin) * xPxPerX + xPxLo);
+        py0 = round((yMin - y0) * yPxPerY + yPxHi);
+        px1 = round((x1 - xMin) * xPxPerX + xPxLo);
+        py1 = round((yMin - y1) * yPxPerY + yPxHi);
+
+        tft.drawLine(px0, py0, px1, py1, chartBGColor);
     }
 
-    px0 = (x0 - xMin) * xPxPerX + xPxLo;
-    py0 = (yMin - y0) * yPxPerY + yPxHi;
-    px1 = (x1 - xMin) * xPxPerX + xPxLo;
-    py1 = (yMin - y1) * yPxPerY + yPxHi;
-    
-    tft.drawLine(px0, py0, px1, py1, chartBGColor);
-    // tft.drawLine(px0+1, py0+1, px1+1, py1+1, chartBGColor);
-}
-
-//  Private methods go below here:
-
-// Compute the width (in pixels) of an integer to be printed
-uint16_t ChartXY::pixelWidth(int label)
-{
-    int cCnt = 1;    // char count
-    float ppc = 5.5; // pixels per char
-
-    if (label < 0)
+    // Transform a chart X value to a TFT pixel coordinate
+    uint16_t ChartXY::xToPx(float x)
     {
-        cCnt++; // Add one for the - sign
-    }
-    while (abs(label) >= 10)
-    {
-        cCnt++;
-        label /= 10;
+        float px = (x - xMin) * xPxPerX + xPxLo;
+        return (round(px));
     }
 
-    return (round(cCnt * ppc));
-}
+    // Transform a chart Y value to a TFT pixel coordinate
+    uint16_t ChartXY::yToPx(float y)
+    {
+
+        float py = (yMin - y) * yPxPerY + yPxHi;
+        return (round(py));
+    }
+
+    //  Private methods go below here:
+
+    // Compute the width (in pixels) of an integer to be printed
+    uint16_t ChartXY::pixelWidth(int label)
+    {
+        int cCnt = 1;    // char count
+        float ppc = 5.5; // pixels per char
+
+        if (label < 0)
+        {
+            cCnt++; // Add one for the - sign
+        }
+        while (abs(label) >= 10)
+        {
+            cCnt++;
+            label /= 10;
+        }
+
+        return (round(cCnt * ppc));
+    }
