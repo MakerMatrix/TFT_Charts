@@ -25,6 +25,8 @@ public:
     uint16_t lineColor = YELLOW;
     uint16_t pointColor = GREEN;
     uint16_t zeroColor = RED;
+    uint16_t xTitleColor = WHITE;
+    uint16_t yTitleColor = WHITE;
     float xMin;
     float xMax;
     float yMin;
