@@ -123,12 +123,12 @@ void ChartXY::drawTitleY(TFT_ILI9341 &tft, String yTitle)
     tft.setRotation(1);
     tft.setTextColor(yTitleColor, tftBGColor);
     tft.setCursor((yPxSize - titleWidth)/2, 0);
-    tft.println(xTitle);
+    tft.println(yTitle);
     tft.setRotation(3);
 }
 
 // Draws an arbitrary String starting at the provided pixel coordinates
-void ChartXY::drawLegend(TFT_ILI9341 &tft, String legend, uint16_t fontSize, uint16_t color)
+void ChartXY::drawLegend(TFT_ILI9341 &tft, String legend, uint16_t xPx, uint16_t yPx, uint16_t fontSize, uint16_t color)
 {
     tft.setTextSize(fontSize);
     tft.setTextColor(color, chartBGColor);
