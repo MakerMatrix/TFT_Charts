@@ -1,8 +1,8 @@
 {
-  "name": "TFT Charts",
+  "name": "TFT_Charts",
   "version": "0.1.6",
   "description": "Charting library for ILI9341 SPI displays",
-  "keywords": "TFT, Chart, Graph",
+  "keywords": "TFT, Chart, Graph, Plot",
   "repository":
   {
     "type": "git",
